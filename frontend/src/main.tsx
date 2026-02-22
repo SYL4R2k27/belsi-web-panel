@@ -1,0 +1,26 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './app/app'
+import './index.css'
+
+async function enableMocking() {
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') {
+    return
+  }
+
+  const { worker } = await import('./shared/api/mock/browser')
+  return worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: {
+      url: '/mockServiceWorker.js',
+    },
+  })
+}
+
+enableMocking().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+})
