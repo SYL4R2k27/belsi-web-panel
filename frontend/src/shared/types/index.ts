@@ -366,6 +366,28 @@ export interface SiteObject {
   longitude: number | null
 }
 
+export interface RealSiteObject {
+  id: string
+  name: string
+  address: string | null
+  status: string
+  coordinator_id: string | null
+  coordinator_name: string | null
+  measurements: Record<string, unknown>
+  comments: string | null
+  active_shifts_count: number
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface SiteObjectActivity {
+  id: string
+  type: string
+  description: string
+  user_name: string | null
+  timestamp: string | null
+}
+
 export interface AuditLogEntry {
   id: string
   actor_id: string
@@ -561,6 +583,8 @@ export interface RealCuratorPhotoOut {
 
 export interface RealShiftItem {
   id: string
+  user_id: string
+  user_name: string | null
   start_at: string
   finish_at: string | null
   duration_hours: number | null

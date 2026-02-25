@@ -23,6 +23,7 @@ import {
   ExternalLink,
   ZoomIn,
   User,
+  MessageSquare,
 } from 'lucide-react'
 
 export default function PhotosPage() {
@@ -114,6 +115,19 @@ export default function PhotosPage() {
       accessorKey: 'timestamp',
       header: 'Загружено',
       cell: ({ row }) => formatDateTime(row.original.timestamp),
+    },
+    {
+      accessorKey: 'comment',
+      header: 'Комментарий',
+      cell: ({ row }) => {
+        const comment = row.original.comment
+        if (!comment) return <span className="text-muted-foreground">—</span>
+        return (
+          <span className="text-sm line-clamp-2 max-w-[200px]" title={comment}>
+            {comment}
+          </span>
+        )
+      },
     },
     {
       accessorKey: 'status',
@@ -232,6 +246,12 @@ export default function PhotosPage() {
                     </Link>
                     <StatusBadge status={photo.status} className="text-[10px]" />
                   </div>
+                  {photo.comment && (
+                    <p className="text-[11px] text-white/80 mt-1 line-clamp-2 flex items-start gap-1">
+                      <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
+                      {photo.comment}
+                    </p>
+                  )}
                   {photo.status === 'pending' && (
                     <div className="mt-2 flex gap-1">
                       <Button
@@ -294,26 +314,27 @@ export default function PhotosPage() {
               </div>
 
               {/* Info bar */}
-              <div className="flex items-center justify-between p-4 border-t">
-                <div className="flex items-center gap-4">
-                  <Link
-                    to={`/installers/${currentPhoto.user_id}`}
-                    className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-                    onClick={() => setLightbox({ open: false, index: 0 })}
-                  >
-                    <User className="h-4 w-4" />
-                    {currentPhoto.user_name || currentPhoto.user_phone}
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                  <span className="text-sm text-muted-foreground">
-                    {currentPhoto.category || '—'}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatDateTime(currentPhoto.timestamp)}
-                  </span>
-                  <StatusBadge status={currentPhoto.status} />
-                </div>
-                {currentPhoto.status === 'pending' && (
+              <div className="p-4 border-t space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Link
+                      to={`/installers/${currentPhoto.user_id}`}
+                      className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                      onClick={() => setLightbox({ open: false, index: 0 })}
+                    >
+                      <User className="h-4 w-4" />
+                      {currentPhoto.user_name || currentPhoto.user_phone}
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                    <span className="text-sm text-muted-foreground">
+                      {currentPhoto.category || '—'}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatDateTime(currentPhoto.timestamp)}
+                    </span>
+                    <StatusBadge status={currentPhoto.status} />
+                  </div>
+                  {currentPhoto.status === 'pending' && (
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
@@ -336,6 +357,13 @@ export default function PhotosPage() {
                       <X className="mr-1 h-4 w-4" />
                       Отклонить
                     </Button>
+                  </div>
+                )}
+                </div>
+                {currentPhoto.comment && (
+                  <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2.5">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-sm">{currentPhoto.comment}</p>
                   </div>
                 )}
               </div>

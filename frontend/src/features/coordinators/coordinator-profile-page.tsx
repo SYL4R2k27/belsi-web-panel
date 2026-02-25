@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usersApi } from '@/shared/api/endpoints/users'
 import { photosApi } from '@/shared/api/endpoints/photos'
 import { tasksApi } from '@/shared/api/endpoints/tasks'
+import { objectsApi } from '@/shared/api/endpoints/objects'
 import { PageHeader } from '@/shared/components/page-header'
 import { StatusBadge } from '@/shared/components/status-badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -31,6 +32,9 @@ import {
   ChevronRight,
   Check,
   X,
+  Building2,
+  Activity,
+  MessageSquare,
 } from 'lucide-react'
 
 export default function CoordinatorProfilePage() {
@@ -56,6 +60,24 @@ export default function CoordinatorProfilePage() {
     enabled: !!id,
   })
 
+  // Load site object assigned to this coordinator
+  const { data: objectsData } = useQuery({
+    queryKey: ['site-objects'],
+    queryFn: () => objectsApi.list().then((r) => r.data),
+    enabled: !!id,
+  })
+
+  const siteObject = (objectsData?.objects || []).find((o) => o.coordinator_id === id)
+
+  // Load activity for the site object
+  const { data: activityData } = useQuery({
+    queryKey: ['site-object-activity', siteObject?.id],
+    queryFn: () => objectsApi.activity(siteObject!.id).then((r) => r.data),
+    enabled: !!siteObject?.id,
+  })
+
+  const activities = activityData?.activities || []
+
   const approveMutation = useMutation({
     mutationFn: (photoId: string) => photosApi.approve(photoId),
     onSuccess: () => {
@@ -66,6 +88,10 @@ export default function CoordinatorProfilePage() {
 
   const photos = photosData?.photos ?? []
   const tasks = Array.isArray(tasksData) ? tasksData.filter((t: any) => t.assigned_to === id) : []
+
+  // Split tasks: active vs completed
+  const activeTasks = tasks.filter((t: any) => t.status === 'new' || t.status === 'in_progress')
+  const completedTasks = tasks.filter((t: any) => t.status === 'done' || t.status === 'cancelled')
 
   if (isLoading) {
     return (
@@ -99,6 +125,40 @@ export default function CoordinatorProfilePage() {
           actions={<Badge variant="outline" className="text-sm">Координатор</Badge>}
         />
       </div>
+
+      {/* Site Object Card */}
+      {siteObject && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                <Building2 className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">{siteObject.name}</h3>
+                  <Badge variant={siteObject.status === 'active' ? 'default' : 'secondary'}>
+                    {siteObject.status === 'active' ? 'Активный' : siteObject.status === 'paused' ? 'Приостановлен' : siteObject.status}
+                  </Badge>
+                </div>
+                {siteObject.address && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                    <MapPin className="h-3 w-3" />
+                    {siteObject.address}
+                  </p>
+                )}
+                <div className="flex items-center gap-4 mt-3 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <div className={`h-2 w-2 rounded-full ${profile.is_on_shift ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                    <span className="text-muted-foreground">{profile.is_on_shift ? 'Смена идёт' : 'Смена не идёт'}</span>
+                  </div>
+                  <span className="text-muted-foreground">Активных смен: {siteObject.active_shifts_count}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card>
@@ -171,6 +231,9 @@ export default function CoordinatorProfilePage() {
           <TabsTrigger value="team">Команда ({profile.team_members?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="photos">Фото ({photos.length})</TabsTrigger>
           <TabsTrigger value="tasks">Задачи ({tasks.length})</TabsTrigger>
+          {siteObject && (
+            <TabsTrigger value="activity">Активность ({activities.length})</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="team" className="mt-4">
@@ -214,6 +277,12 @@ export default function CoordinatorProfilePage() {
                       <span className="text-xs text-white">{formatDateTime(photo.timestamp)}</span>
                       <StatusBadge status={photo.status} className="text-[10px]" />
                     </div>
+                    {photo.comment && (
+                      <p className="text-[11px] text-white/80 mt-1 line-clamp-2 flex items-start gap-1">
+                        <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
+                        {photo.comment}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -225,24 +294,87 @@ export default function CoordinatorProfilePage() {
           {tasks.length === 0 ? (
             <p className="text-muted-foreground text-sm py-8 text-center">Нет задач</p>
           ) : (
-            <div className="space-y-3">
-              {tasks.map((task: any) => (
-                <Card key={task.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div>
-                      <Link to={`/tasks/${task.id}`} className="font-medium hover:underline text-primary">{task.title}</Link>
-                      {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{task.priority}</Badge>
-                      <StatusBadge status={task.status} />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-6">
+              {activeTasks.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <ClipboardList className="h-4 w-4 text-blue-600" />
+                    Активные задачи ({activeTasks.length})
+                  </h4>
+                  <div className="space-y-3">
+                    {activeTasks.map((task: any) => (
+                      <Card key={task.id}>
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div>
+                            <Link to={`/tasks/${task.id}`} className="font-medium hover:underline text-primary">{task.title}</Link>
+                            {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{task.priority}</Badge>
+                            <StatusBadge status={task.status} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {completedTasks.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Завершённые задачи ({completedTasks.length})</h4>
+                  <div className="space-y-3">
+                    {completedTasks.map((task: any) => (
+                      <Card key={task.id} className="opacity-70">
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div>
+                            <Link to={`/tasks/${task.id}`} className="font-medium hover:underline text-primary">{task.title}</Link>
+                            {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{task.priority}</Badge>
+                            <StatusBadge status={task.status} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
+
+        {siteObject && (
+          <TabsContent value="activity" className="mt-4">
+            {activities.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-8 text-center">Нет активности по объекту</p>
+            ) : (
+              <div className="space-y-3">
+                {activities.map((act: any) => (
+                  <Card key={act.id}>
+                    <CardContent className="flex items-start gap-3 p-4">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0 mt-0.5">
+                        <Activity className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">{act.description}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          {act.user_name && (
+                            <span className="text-xs text-muted-foreground">{act.user_name}</span>
+                          )}
+                          {act.timestamp && (
+                            <span className="text-xs text-muted-foreground">{formatDateTime(act.timestamp)}</span>
+                          )}
+                          <Badge variant="outline" className="text-[10px]">{act.type}</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Photo Lightbox */}
@@ -268,21 +400,29 @@ export default function CoordinatorProfilePage() {
                   {lightbox.index + 1} / {photos.length}
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border-t">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">{photos[lightbox.index].category || '—'}</span>
-                  <span className="text-sm text-muted-foreground">{formatDateTime(photos[lightbox.index].timestamp)}</span>
-                  <StatusBadge status={photos[lightbox.index].status} />
+              <div className="p-4 border-t space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">{photos[lightbox.index].category || '—'}</span>
+                    <span className="text-sm text-muted-foreground">{formatDateTime(photos[lightbox.index].timestamp)}</span>
+                    <StatusBadge status={photos[lightbox.index].status} />
+                  </div>
+                  {photos[lightbox.index].status === 'pending' && (
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700"
+                        onClick={() => approveMutation.mutate(photos[lightbox.index].id)}>
+                        <Check className="mr-1 h-4 w-4" />Одобрить
+                      </Button>
+                      <Button size="sm" variant="destructive">
+                        <X className="mr-1 h-4 w-4" />Отклонить
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {photos[lightbox.index].status === 'pending' && (
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700"
-                      onClick={() => approveMutation.mutate(photos[lightbox.index].id)}>
-                      <Check className="mr-1 h-4 w-4" />Одобрить
-                    </Button>
-                    <Button size="sm" variant="destructive">
-                      <X className="mr-1 h-4 w-4" />Отклонить
-                    </Button>
+                {photos[lightbox.index].comment && (
+                  <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2.5">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-sm">{photos[lightbox.index].comment}</p>
                   </div>
                 )}
               </div>

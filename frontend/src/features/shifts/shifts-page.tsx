@@ -33,6 +33,22 @@ const columns: ColumnDef<RealShiftItem>[] = [
     ),
   },
   {
+    accessorKey: 'user_name',
+    header: 'Монтажник',
+    cell: ({ row }) => {
+      const name = row.original.user_name
+      if (!name) return <span className="text-muted-foreground">—</span>
+      return (
+        <Link
+          to={`/installers/${row.original.user_id}`}
+          className="font-medium text-primary hover:underline"
+        >
+          {name}
+        </Link>
+      )
+    },
+  },
+  {
     accessorKey: 'start_at',
     header: 'Начало',
     cell: ({ row }) => formatDateTime(row.original.start_at),

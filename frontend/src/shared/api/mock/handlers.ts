@@ -149,6 +149,8 @@ function toCuratorPhotoOut(p: typeof mockPhotos[0]) {
 function toShiftItem(s: typeof mockShifts[0]) {
   return {
     id: s.id,
+    user_id: s.user_id,
+    user_name: s.user ? `${s.user.first_name} ${s.user.last_name}` : null,
     start_at: s.started_at,
     finish_at: s.finished_at,
     duration_hours: s.total_duration_minutes ? Math.round(s.total_duration_minutes / 60 * 10) / 10 : null,

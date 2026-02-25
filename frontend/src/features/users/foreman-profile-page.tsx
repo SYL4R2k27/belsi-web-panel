@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Check,
   X,
+  MessageSquare,
 } from 'lucide-react'
 
 export default function ForemanProfilePage() {
@@ -65,6 +66,10 @@ export default function ForemanProfilePage() {
 
   const photos = photosData?.photos ?? []
   const tasks = Array.isArray(tasksData) ? tasksData.filter((t: any) => t.assigned_to === id) : []
+
+  // Split tasks: active vs completed
+  const activeTasks = tasks.filter((t: any) => t.status === 'new' || t.status === 'in_progress')
+  const completedTasks = tasks.filter((t: any) => t.status === 'done' || t.status === 'cancelled')
 
   if (isLoading) {
     return (
@@ -211,6 +216,12 @@ export default function ForemanProfilePage() {
                       <span className="text-xs text-white">{formatDateTime(photo.timestamp)}</span>
                       <StatusBadge status={photo.status} className="text-[10px]" />
                     </div>
+                    {photo.comment && (
+                      <p className="text-[11px] text-white/80 mt-1 line-clamp-2 flex items-start gap-1">
+                        <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
+                        {photo.comment}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -222,21 +233,52 @@ export default function ForemanProfilePage() {
           {tasks.length === 0 ? (
             <p className="text-muted-foreground text-sm py-8 text-center">Нет задач</p>
           ) : (
-            <div className="space-y-3">
-              {tasks.map((task: any) => (
-                <Card key={task.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div>
-                      <Link to={`/tasks/${task.id}`} className="font-medium hover:underline text-primary">{task.title}</Link>
-                      {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{task.priority}</Badge>
-                      <StatusBadge status={task.status} />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-6">
+              {activeTasks.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <ClipboardList className="h-4 w-4 text-blue-600" />
+                    Активные задачи ({activeTasks.length})
+                  </h4>
+                  <div className="space-y-3">
+                    {activeTasks.map((task: any) => (
+                      <Card key={task.id}>
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div>
+                            <Link to={`/tasks/${task.id}`} className="font-medium hover:underline text-primary">{task.title}</Link>
+                            {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{task.priority}</Badge>
+                            <StatusBadge status={task.status} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {completedTasks.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Завершённые задачи ({completedTasks.length})</h4>
+                  <div className="space-y-3">
+                    {completedTasks.map((task: any) => (
+                      <Card key={task.id} className="opacity-70">
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div>
+                            <Link to={`/tasks/${task.id}`} className="font-medium hover:underline text-primary">{task.title}</Link>
+                            {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{task.priority}</Badge>
+                            <StatusBadge status={task.status} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
@@ -265,21 +307,29 @@ export default function ForemanProfilePage() {
                   {lightbox.index + 1} / {photos.length}
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border-t">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">{photos[lightbox.index].category || '—'}</span>
-                  <span className="text-sm text-muted-foreground">{formatDateTime(photos[lightbox.index].timestamp)}</span>
-                  <StatusBadge status={photos[lightbox.index].status} />
+              <div className="p-4 border-t space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">{photos[lightbox.index].category || '—'}</span>
+                    <span className="text-sm text-muted-foreground">{formatDateTime(photos[lightbox.index].timestamp)}</span>
+                    <StatusBadge status={photos[lightbox.index].status} />
+                  </div>
+                  {photos[lightbox.index].status === 'pending' && (
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700"
+                        onClick={() => approveMutation.mutate(photos[lightbox.index].id)}>
+                        <Check className="mr-1 h-4 w-4" />Одобрить
+                      </Button>
+                      <Button size="sm" variant="destructive">
+                        <X className="mr-1 h-4 w-4" />Отклонить
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {photos[lightbox.index].status === 'pending' && (
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700"
-                      onClick={() => approveMutation.mutate(photos[lightbox.index].id)}>
-                      <Check className="mr-1 h-4 w-4" />Одобрить
-                    </Button>
-                    <Button size="sm" variant="destructive">
-                      <X className="mr-1 h-4 w-4" />Отклонить
-                    </Button>
+                {photos[lightbox.index].comment && (
+                  <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2.5">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-sm">{photos[lightbox.index].comment}</p>
                   </div>
                 )}
               </div>

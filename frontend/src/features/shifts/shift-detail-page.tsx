@@ -58,6 +58,16 @@ export default function ShiftDetailPage() {
           <CardHeader><CardTitle className="text-base">Детали смены</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm">
             <div className="flex justify-between">
+              <span className="text-muted-foreground">Монтажник</span>
+              {shift.user_name ? (
+                <Link to={`/installers/${shift.user_id}`} className="text-primary hover:underline">
+                  {shift.user_name}
+                </Link>
+              ) : (
+                <span>—</span>
+              )}
+            </div>
+            <div className="flex justify-between">
               <span className="text-muted-foreground">Статус</span>
               <StatusBadge status={shift.status} />
             </div>

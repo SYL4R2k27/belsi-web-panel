@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import type { ColumnDef } from '@tanstack/react-table'
 import { usersApi } from '@/shared/api/endpoints/users'
 import type { RealCuratorForemanOut } from '@/shared/types'
@@ -13,11 +14,14 @@ const columns: ColumnDef<RealCuratorForemanOut>[] = [
   {
     accessorKey: 'full_name',
     header: 'Имя',
-    cell: ({ row }) => (
-      <div className="font-medium">
-        {row.original.full_name || `${row.original.last_name ?? ''} ${row.original.first_name ?? ''}`.trim() || '—'}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const name = row.original.full_name || `${row.original.last_name ?? ''} ${row.original.first_name ?? ''}`.trim() || '—'
+      return (
+        <Link to={`/foremen/${row.original.id}`} className="font-medium text-primary hover:underline">
+          {name}
+        </Link>
+      )
+    },
   },
   {
     accessorKey: 'phone',
