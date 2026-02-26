@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { LogOut, Menu, Moon, Sun, User, Paintbrush } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
 import { useTheme } from '@/app/providers/theme-provider'
+import { ROLE_LABELS } from '@/shared/lib/rbac'
 import { Button } from '@/shared/ui/button'
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar'
 import {
@@ -71,9 +72,16 @@ export function Header({ glassmorphism = false, onMobileMenuToggle }: HeaderProp
               <Avatar className="h-7 w-7">
                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
-              <span className="text-sm hidden sm:inline">
-                {user?.first_name} {user?.last_name}
-              </span>
+              <div className="hidden sm:flex flex-col items-start">
+                <span className="text-sm leading-tight">
+                  {user?.first_name} {user?.last_name}
+                </span>
+                {user?.role && (
+                  <span className="text-[10px] text-muted-foreground leading-tight">
+                    {ROLE_LABELS[user.role]}
+                  </span>
+                )}
+              </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">

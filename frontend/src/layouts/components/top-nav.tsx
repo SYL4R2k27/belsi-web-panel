@@ -21,6 +21,9 @@ import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { ScrollArea, ScrollBar } from '@/shared/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip'
+import { UserRole } from '@/shared/types'
+import { filterNavByRole } from '@/shared/lib/rbac'
+import { useAuth } from '@/app/providers/auth-provider'
 
 interface NavItem {
   label: string
@@ -28,7 +31,7 @@ interface NavItem {
   icon: React.ElementType
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },
   { label: 'Монтажники', path: '/installers', icon: Users },
   { label: 'Бригадиры', path: '/foremen', icon: HardHat },
@@ -55,6 +58,11 @@ interface TopNavProps {
 
 export function TopNav({ pendingPhotos, openTickets, unreadMessages }: TopNavProps) {
   const location = useLocation()
+  const { user } = useAuth()
+
+  // Фильтруем пункты навигации по роли пользователя
+  const userRole = user?.role || UserRole.CURATOR
+  const navItems = filterNavByRole(allNavItems, userRole)
 
   function isActive(path: string) {
     if (path === '/') return location.pathname === '/'

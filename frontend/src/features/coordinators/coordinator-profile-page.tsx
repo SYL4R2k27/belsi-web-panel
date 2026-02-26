@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { Dialog, DialogContent } from '@/shared/ui/dialog'
 import { formatPhone, formatDate, formatDateTime } from '@/shared/lib/format'
 import { toast } from 'sonner'
+import { SetPasswordButton } from '@/shared/components/set-password-dialog'
 import {
   ArrowLeft,
   Clock,
@@ -122,7 +123,12 @@ export default function CoordinatorProfilePage() {
         <PageHeader
           title={displayName}
           description={formatPhone(profile.phone)}
-          actions={<Badge variant="outline" className="text-sm">Координатор</Badge>}
+          actions={
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-sm">Координатор</Badge>
+              <SetPasswordButton userId={id!} userName={displayName} />
+            </div>
+          }
         />
       </div>
 

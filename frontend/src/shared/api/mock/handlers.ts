@@ -2,6 +2,7 @@ import { http, HttpResponse, delay } from 'msw'
 import {
   allUsers,
   curatorUser,
+  mockAccounts,
   mockAuditLogs,
   mockForemen,
   mockInstallers,
@@ -10,6 +11,8 @@ import {
   mockPhotos,
   mockSettings,
   mockShifts,
+  mockSiteActivities,
+  mockSiteObjects,
   mockSystemLogs,
   mockTasks,
   mockTeamMembers,
@@ -20,7 +23,10 @@ import {
   mockTools,
   mockTransactions,
 } from './data'
-import { PhotoStatus } from '@/shared/types'
+import { PhotoStatus, type User } from '@/shared/types'
+
+// Хранилище текущего залогиненного пользователя (для мока)
+let currentLoggedInUser: User = curatorUser
 
 const MOCK_API = '/api/v1'
 
@@ -222,6 +228,64 @@ export const handlers = [
   // Auth (real API format)
   // ==========================================
 
+  // Логин по логину + паролю (телефон / email / username)
+  http.post('/auth/login', async ({ request }) => {
+    await delay(400)
+    const body = await request.json() as { login: string; password: string }
+
+    const account = mockAccounts.find(
+      (a) => a.login.toLowerCase() === body.login.toLowerCase() && a.password === body.password,
+    )
+
+    if (!account) {
+      return HttpResponse.json(
+        { detail: 'Неверный логин или пароль' },
+        { status: 401 },
+      )
+    }
+
+    // Запомним кто залогинился
+    currentLoggedInUser = account.user
+
+    return HttpResponse.json({
+      token: `mock-jwt-token-${account.user.role}-${account.user.id}`,
+      user: {
+        id: account.user.id,
+        phone: account.user.phone,
+        role: account.user.role,
+        first_name: account.user.first_name,
+        last_name: account.user.last_name,
+        full_name: `${account.user.first_name} ${account.user.last_name}`,
+        short_id: null,
+        foreman_id: null,
+        created_at: account.user.created_at,
+      },
+    })
+  }),
+
+  // Смена своего пароля
+  http.post('/auth/change-password', async ({ request }) => {
+    await delay(300)
+    const body = await request.json() as { current_password: string; new_password: string }
+    if (body.new_password.length < 6) {
+      return HttpResponse.json({ detail: 'Пароль должен быть не менее 6 символов' }, { status: 400 })
+    }
+    return HttpResponse.json({ success: true, message: 'Пароль успешно изменён' })
+  }),
+
+  // Куратор устанавливает пароль пользователю
+  http.post('/curator/set-password', async ({ request }) => {
+    await delay(300)
+    const body = await request.json() as { user_id: string; new_password: string }
+    if (body.new_password.length < 6) {
+      return HttpResponse.json({ detail: 'Пароль должен быть не менее 6 символов' }, { status: 400 })
+    }
+    const user = allUsers.find((u) => u.id === body.user_id)
+    if (!user) return HttpResponse.json({ detail: 'Пользователь не найден' }, { status: 404 })
+    return HttpResponse.json({ success: true, message: 'Пароль установлен' })
+  }),
+
+  // Старые OTP-хэндлеры (для обратной совместимости с мобильными)
   http.post('/auth/phone', async () => {
     await delay(300)
     return HttpResponse.json({ status: 'ok' })
@@ -238,18 +302,33 @@ export const handlers = [
     })
   }),
 
-  http.get('/user/me', async () => {
+  http.get('/user/me', async ({ request }) => {
     await delay(200)
+
+    // Определяем пользователя по токену
+    const authHeader = request.headers.get('Authorization')
+    const token = authHeader?.replace('Bearer ', '') || ''
+
+    // Попробуем извлечь роль и id из токена (формат: mock-jwt-token-{role}-{id})
+    const tokenMatch = token.match(/^mock-jwt-token-(\w+)-(.+)$/)
+    let user = currentLoggedInUser
+
+    if (tokenMatch) {
+      const [, , userId] = tokenMatch
+      const found = allUsers.find((u) => u.id === userId)
+      if (found) user = found
+    }
+
     return HttpResponse.json({
-      id: curatorUser.id,
-      phone: curatorUser.phone,
-      role: curatorUser.role,
-      first_name: curatorUser.first_name,
-      last_name: curatorUser.last_name,
-      full_name: `${curatorUser.first_name} ${curatorUser.last_name}`,
+      id: user.id,
+      phone: user.phone,
+      role: user.role,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      full_name: `${user.first_name} ${user.last_name}`,
       short_id: null,
       foreman_id: null,
-      created_at: curatorUser.created_at,
+      created_at: user.created_at,
     })
   }),
 
@@ -731,5 +810,75 @@ export const handlers = [
     await delay(300)
     const body = await request.json() as Record<string, unknown>
     return HttpResponse.json({ data: { ...mockSettings, ...body } })
+  }),
+
+  // ==========================================
+  // Site Objects (real API format)
+  // ==========================================
+
+  http.get('/curator/objects', async ({ request }) => {
+    await delay(300)
+    const params = sp(request)
+    const status = params.get('status')
+
+    let filtered = mockSiteObjects
+    if (status) filtered = filtered.filter((o) => o.status === status)
+
+    return HttpResponse.json({ objects: filtered })
+  }),
+
+  http.get('/curator/objects/:id', async ({ params }) => {
+    await delay(200)
+    const obj = mockSiteObjects.find((o) => o.id === params.id)
+    if (!obj) return HttpResponse.json({ detail: 'Object not found' }, { status: 404 })
+    return HttpResponse.json(obj)
+  }),
+
+  http.post('/curator/objects', async ({ request }) => {
+    await delay(400)
+    const body = await request.json() as { name: string; address?: string; coordinator_id?: string }
+    const coordinator = body.coordinator_id
+      ? allUsers.find((u) => u.id === body.coordinator_id)
+      : null
+    const newObj = {
+      id: `site-obj-${crypto.randomUUID().slice(0, 8)}`,
+      name: body.name,
+      address: body.address || null,
+      status: 'active',
+      coordinator_id: body.coordinator_id || null,
+      coordinator_name: coordinator ? `${coordinator.first_name} ${coordinator.last_name}` : null,
+      measurements: {},
+      comments: null,
+      active_shifts_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    return HttpResponse.json({ success: true, object: newObj })
+  }),
+
+  http.patch('/curator/objects/:id', async ({ params, request }) => {
+    await delay(300)
+    const obj = mockSiteObjects.find((o) => o.id === params.id)
+    if (!obj) return HttpResponse.json({ detail: 'Object not found' }, { status: 404 })
+    await request.json()
+    return HttpResponse.json({ success: true })
+  }),
+
+  http.post('/curator/objects/:id/assign-coordinator', async ({ params, request }) => {
+    await delay(300)
+    const obj = mockSiteObjects.find((o) => o.id === params.id)
+    if (!obj) return HttpResponse.json({ detail: 'Object not found' }, { status: 404 })
+    await request.json()
+    return HttpResponse.json({ success: true })
+  }),
+
+  http.get('/curator/objects/:id/activity', async ({ params, request }) => {
+    await delay(200)
+    const urlParams = sp(request)
+    const limit = Number(urlParams.get('limit')) || 20
+    const activities = mockSiteActivities
+      .filter((a) => a.site_object_id === params.id)
+      .slice(0, limit)
+    return HttpResponse.json({ activities })
   }),
 ]

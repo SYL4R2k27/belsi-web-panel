@@ -31,6 +31,8 @@ import {
   type Shift,
   type Team,
   type TeamMember,
+  type RealSiteObject,
+  type SiteObjectActivity,
 } from '@/shared/types'
 
 // ==========================================
@@ -83,7 +85,7 @@ export const curatorUser: User = {
 export const mockForemen: User[] = Array.from({ length: 8 }, (_, i) => ({
   id: `foreman-${String(i + 1).padStart(3, '0')}`,
   phone: makePhone(),
-  email: null,
+  email: i === 0 ? 'foreman@belsi.work' : null,
   first_name: firstNames[i],
   last_name: lastNames[i],
   patronymic: patronymics[i],
@@ -99,7 +101,7 @@ export const mockForemen: User[] = Array.from({ length: 8 }, (_, i) => ({
 export const mockInstallers: User[] = Array.from({ length: 50 }, (_, i) => ({
   id: `installer-${String(i + 1).padStart(3, '0')}`,
   phone: makePhone(),
-  email: null,
+  email: i === 0 ? 'installer@belsi.work' : null,
   first_name: firstNames[i % firstNames.length],
   last_name: lastNames[(i + 5) % lastNames.length],
   patronymic: patronymics[i % patronymics.length],
@@ -112,7 +114,104 @@ export const mockInstallers: User[] = Array.from({ length: 50 }, (_, i) => ({
   last_active_at: i < 40 ? randomDate(7) : randomDate(60),
 }))
 
-export const allUsers: User[] = [curatorUser, ...mockForemen, ...mockInstallers]
+// ==========================================
+// Координаторы
+// ==========================================
+
+export const mockCoordinators: User[] = Array.from({ length: 4 }, (_, i) => ({
+  id: `coordinator-${String(i + 1).padStart(3, '0')}`,
+  phone: makePhone(),
+  email: i === 0 ? 'coordinator@belsi.work' : null,
+  first_name: firstNames[10 + i],
+  last_name: lastNames[10 + i],
+  patronymic: patronymics[i],
+  role: UserRole.COORDINATOR,
+  is_active: true,
+  avatar_url: null,
+  hourly_rate: null,
+  created_at: randomDate(180),
+  updated_at: randomDate(30),
+  last_active_at: randomDate(3),
+}))
+
+export const allUsers: User[] = [curatorUser, ...mockCoordinators, ...mockForemen, ...mockInstallers]
+
+// ==========================================
+// Демо-аккаунты для авторизации по логину+паролю
+// ==========================================
+
+export interface MockAccount {
+  login: string       // email, phone или username
+  password: string
+  user: User
+}
+
+export const mockAccounts: MockAccount[] = [
+  // Куратор
+  {
+    login: 'curator@belsi.work',
+    password: 'demo123',
+    user: curatorUser,
+  },
+  {
+    login: curatorUser.phone,
+    password: 'demo123',
+    user: curatorUser,
+  },
+  {
+    login: 'curator',
+    password: 'demo123',
+    user: curatorUser,
+  },
+  // Координатор
+  {
+    login: 'coordinator@belsi.work',
+    password: 'demo123',
+    user: mockCoordinators[0],
+  },
+  {
+    login: mockCoordinators[0].phone,
+    password: 'demo123',
+    user: mockCoordinators[0],
+  },
+  {
+    login: 'coordinator',
+    password: 'demo123',
+    user: mockCoordinators[0],
+  },
+  // Бригадир
+  {
+    login: 'foreman@belsi.work',
+    password: 'demo123',
+    user: mockForemen[0],
+  },
+  {
+    login: mockForemen[0].phone,
+    password: 'demo123',
+    user: mockForemen[0],
+  },
+  {
+    login: 'foreman',
+    password: 'demo123',
+    user: mockForemen[0],
+  },
+  // Монтажник
+  {
+    login: 'installer@belsi.work',
+    password: 'demo123',
+    user: mockInstallers[0],
+  },
+  {
+    login: mockInstallers[0].phone,
+    password: 'demo123',
+    user: mockInstallers[0],
+  },
+  {
+    login: 'installer',
+    password: 'demo123',
+    user: mockInstallers[0],
+  },
+]
 
 // ==========================================
 // Teams
@@ -458,6 +557,63 @@ export const mockSystemLogs: SystemLog[] = Array.from({ length: 100 }, (_, i) =>
   duration_ms: 10 + Math.floor(Math.random() * 500),
   created_at: randomDate(7),
 })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+// ==========================================
+// Site Objects
+// ==========================================
+
+const objectNames = [
+  'ЖК «Северный»', 'ЖК «Солнечный»', 'БЦ «Меридиан»', 'ТЦ «Галерея»',
+  'Школа №42', 'ЖК «Прибрежный»', 'Фабрика «Лотос»', 'Склад «Восток»',
+]
+const objectAddresses = [
+  'г. Москва, ул. Северная, д. 15', 'г. Москва, пр. Солнечный, д. 3к1',
+  'г. Москва, ул. Ленина, д. 42', 'г. Казань, ул. Баумана, д. 10',
+  'г. Казань, ул. Школьная, д. 7', 'г. Москва, наб. Прибрежная, д. 28',
+  'г. Нижний Новгород, пр. Заводской, д. 50', 'г. Москва, ул. Восточная, д. 100',
+]
+
+export const mockSiteObjects: RealSiteObject[] = objectNames.map((name, i) => ({
+  id: `site-obj-${String(i + 1).padStart(3, '0')}`,
+  name,
+  address: objectAddresses[i],
+  status: i < 5 ? 'active' : i === 5 ? 'paused' : 'completed',
+  coordinator_id: i < mockCoordinators.length ? mockCoordinators[i].id : null,
+  coordinator_name: i < mockCoordinators.length
+    ? `${mockCoordinators[i].first_name} ${mockCoordinators[i].last_name}`
+    : null,
+  measurements: {},
+  comments: i % 3 === 0 ? 'Плановые работы идут по графику' : null,
+  active_shifts_count: i < 5 ? 1 + Math.floor(Math.random() * 4) : 0,
+  created_at: randomDate(120),
+  updated_at: randomDate(14),
+}))
+
+const activityTypes = ['shift_started', 'photo_uploaded', 'task_completed', 'group_assigned', 'note_added']
+const activityDescriptions = [
+  'Монтажник начал смену',
+  'Загружен фотоотчёт за час #3',
+  'Завершена задача «Монтаж щита»',
+  'Назначена бригада Иванова',
+  'Обновлён комментарий по объекту',
+  'Координатор провёл осмотр',
+  'Принято 5 фотоотчётов',
+  'Бригада приступила к электромонтажу',
+]
+
+export const mockSiteActivities: (SiteObjectActivity & { site_object_id: string })[] = mockSiteObjects
+  .filter((o) => o.status === 'active')
+  .flatMap((obj) =>
+    Array.from({ length: 4 + Math.floor(Math.random() * 6) }, (_, _i) => ({
+      id: uuid(),
+      type: randomItem(activityTypes),
+      description: randomItem(activityDescriptions),
+      user_name: obj.coordinator_name || `${randomItem(firstNames)} ${randomItem(lastNames)}`,
+      timestamp: randomDate(7),
+      site_object_id: obj.id,
+    })),
+  )
+  .sort((a, b) => new Date(b.timestamp!).getTime() - new Date(a.timestamp!).getTime())
 
 // ==========================================
 // Settings

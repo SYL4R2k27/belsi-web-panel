@@ -24,6 +24,9 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { ScrollArea } from '@/shared/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip'
+import { UserRole } from '@/shared/types'
+import { filterNavByRole, ROLE_LABELS } from '@/shared/lib/rbac'
+import { useAuth } from '@/app/providers/auth-provider'
 
 interface NavItem {
   label: string
@@ -33,7 +36,7 @@ interface NavItem {
   section?: string
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },
   { label: 'Монтажники', path: '/installers', icon: Users, section: 'Персонал' },
   { label: 'Бригадиры', path: '/foremen', icon: HardHat },
@@ -70,6 +73,12 @@ export function Sidebar({
   glassmorphism = false,
 }: SidebarProps) {
   const location = useLocation()
+  const { user } = useAuth()
+
+  // Фильтруем пункты навигации по роли пользователя
+  const userRole = user?.role || UserRole.CURATOR
+  const navItems = filterNavByRole(allNavItems, userRole)
+  const roleLabel = ROLE_LABELS[userRole]
 
   function isActive(path: string) {
     if (path === '/') return location.pathname === '/'
@@ -95,7 +104,7 @@ export function Sidebar({
           : 'bg-sidebar',
       )}
     >
-      {/* Logo */}
+      {/* Logo + роль */}
       <div className={cn(
         'flex h-16 items-center border-b shrink-0',
         collapsed ? 'justify-center px-2' : 'gap-2 px-6',
@@ -104,9 +113,14 @@ export function Sidebar({
           B
         </div>
         {!collapsed && (
-          <span className="text-lg font-semibold text-sidebar-foreground whitespace-nowrap">
-            BELSI. Монтаж
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-lg font-semibold text-sidebar-foreground whitespace-nowrap leading-tight">
+              BELSI. Монтаж
+            </span>
+            <span className="text-[10px] text-sidebar-foreground/50 leading-tight truncate">
+              {roleLabel}
+            </span>
+          </div>
         )}
       </div>
 

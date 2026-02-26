@@ -465,6 +465,19 @@ export interface LoginCredentials {
   password: string
 }
 
+/**
+ * Универсальный запрос логина: login может быть телефоном, email или username
+ */
+export interface LoginRequest {
+  login: string
+  password: string
+}
+
+export interface LoginResponse {
+  token: string
+  user: RealUserResponse
+}
+
 export interface PhoneAuthRequest {
   phone: string
 }

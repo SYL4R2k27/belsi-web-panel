@@ -6,8 +6,7 @@ interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  sendOtp: (phone: string) => Promise<void>
-  verifyOtp: (phone: string, code: string) => Promise<void>
+  login: (loginValue: string, password: string) => Promise<void>
   logout: () => void
 }
 
@@ -54,15 +53,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser()
   }, [fetchUser])
 
-  const sendOtp = useCallback(async (phone: string) => {
-    await authApi.sendOtp({ phone })
-  }, [])
-
-  const verifyOtp = useCallback(async (phone: string, code: string) => {
-    const { data } = await authApi.verifyOtp({ phone, code })
+  const login = useCallback(async (loginValue: string, password: string) => {
+    const { data } = await authApi.login({ login: loginValue, password })
     localStorage.setItem('auth_token', data.token)
-    await fetchUser()
-  }, [fetchUser])
+    // Transform RealUserResponse → User
+    setUser({
+      id: data.user.id,
+      phone: data.user.phone,
+      email: null,
+      first_name: data.user.first_name || data.user.full_name || '',
+      last_name: data.user.last_name || '',
+      patronymic: null,
+      role: data.user.role as UserRole,
+      is_active: true,
+      avatar_url: null,
+      hourly_rate: null,
+      created_at: data.user.created_at,
+      updated_at: data.user.created_at,
+      last_active_at: null,
+    })
+  }, [])
 
   const logout = useCallback(() => {
     authApi.logout()
@@ -70,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, sendOtp, verifyOtp, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

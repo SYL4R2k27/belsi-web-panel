@@ -31,6 +31,21 @@ export interface UpdateNameData {
   last_name: string
 }
 
+export interface ChangePasswordData {
+  current_password: string
+  new_password: string
+}
+
+export interface SetPasswordData {
+  user_id: string
+  new_password: string
+}
+
+export interface PasswordResponse {
+  success: boolean
+  message: string
+}
+
 // --- API ---
 
 export const profileApi = {
@@ -47,5 +62,15 @@ export const profileApi = {
   /** PUT /user/me/name — update name */
   updateName(data: UpdateNameData) {
     return apiClient.put('/user/me/name', data)
+  },
+
+  /** POST /auth/change-password — change own password */
+  changePassword(data: ChangePasswordData) {
+    return apiClient.post<PasswordResponse>('/auth/change-password', data)
+  },
+
+  /** POST /curator/set-password — curator sets password for any user */
+  setPassword(data: SetPasswordData) {
+    return apiClient.post<PasswordResponse>('/curator/set-password', data)
   },
 }

@@ -13,7 +13,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Separator } from '@/shared/ui/separator'
 import { formatPhone, formatDate } from '@/shared/lib/format'
 import { toast } from 'sonner'
-import { Save, User, Phone, Mail, MapPin, Calendar, Shield } from 'lucide-react'
+import { Save, User, Phone, Mail, MapPin, Calendar, Shield, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -32,6 +32,14 @@ export default function ProfilePage() {
     telegram: '',
     about: '',
   })
+
+  const [pwForm, setPwForm] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
+  })
+  const [showCurrentPw, setShowCurrentPw] = useState(false)
+  const [showNewPw, setShowNewPw] = useState(false)
 
   useEffect(() => {
     if (profile) {
@@ -57,8 +65,36 @@ export default function ProfilePage() {
     },
   })
 
+  const changePasswordMutation = useMutation({
+    mutationFn: (data: { current_password: string; new_password: string }) =>
+      profileApi.changePassword(data),
+    onSuccess: () => {
+      toast.success('Пароль успешно изменён')
+      setPwForm({ current_password: '', new_password: '', confirm_password: '' })
+    },
+    onError: (error: any) => {
+      const detail = error?.response?.data?.detail || 'Ошибка при смене пароля'
+      toast.error(detail)
+    },
+  })
+
   const handleSave = () => {
     updateMutation.mutate(form)
+  }
+
+  const handleChangePassword = () => {
+    if (pwForm.new_password.length < 6) {
+      toast.error('Новый пароль должен быть не менее 6 символов')
+      return
+    }
+    if (pwForm.new_password !== pwForm.confirm_password) {
+      toast.error('Пароли не совпадают')
+      return
+    }
+    changePasswordMutation.mutate({
+      current_password: pwForm.current_password,
+      new_password: pwForm.new_password,
+    })
   }
 
   if (isLoading) {
@@ -192,6 +228,84 @@ export default function ProfilePage() {
               rows={3}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Change password */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            Смена пароля
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="current_password">Текущий пароль</Label>
+            <div className="relative">
+              <Input
+                id="current_password"
+                type={showCurrentPw ? 'text' : 'password'}
+                value={pwForm.current_password}
+                onChange={(e) => setPwForm((f) => ({ ...f, current_password: e.target.value }))}
+                placeholder="Введите текущий пароль"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPw(!showCurrentPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Новый пароль</Label>
+              <div className="relative">
+                <Input
+                  id="new_password"
+                  type={showNewPw ? 'text' : 'password'}
+                  value={pwForm.new_password}
+                  onChange={(e) => setPwForm((f) => ({ ...f, new_password: e.target.value }))}
+                  placeholder="Минимум 6 символов"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPw(!showNewPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Подтвердите пароль</Label>
+              <Input
+                id="confirm_password"
+                type={showNewPw ? 'text' : 'password'}
+                value={pwForm.confirm_password}
+                onChange={(e) => setPwForm((f) => ({ ...f, confirm_password: e.target.value }))}
+                placeholder="Повторите новый пароль"
+              />
+            </div>
+          </div>
+          {pwForm.new_password && pwForm.confirm_password && pwForm.new_password !== pwForm.confirm_password && (
+            <p className="text-sm text-destructive">Пароли не совпадают</p>
+          )}
+          <Button
+            onClick={handleChangePassword}
+            disabled={
+              changePasswordMutation.isPending ||
+              !pwForm.current_password ||
+              !pwForm.new_password ||
+              !pwForm.confirm_password ||
+              pwForm.new_password !== pwForm.confirm_password
+            }
+          >
+            <Lock className="mr-2 h-4 w-4" />
+            {changePasswordMutation.isPending ? 'Сохранение...' : 'Изменить пароль'}
+          </Button>
         </CardContent>
       </Card>
     </div>
