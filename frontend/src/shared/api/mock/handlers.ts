@@ -11,8 +11,6 @@ import {
   mockPhotos,
   mockSettings,
   mockShifts,
-  mockSiteActivities,
-  mockSiteObjects,
   mockSystemLogs,
   mockTasks,
   mockTeamMembers,
@@ -812,73 +810,4 @@ export const handlers = [
     return HttpResponse.json({ data: { ...mockSettings, ...body } })
   }),
 
-  // ==========================================
-  // Site Objects (real API format)
-  // ==========================================
-
-  http.get('/curator/objects', async ({ request }) => {
-    await delay(300)
-    const params = sp(request)
-    const status = params.get('status')
-
-    let filtered = mockSiteObjects
-    if (status) filtered = filtered.filter((o) => o.status === status)
-
-    return HttpResponse.json({ objects: filtered })
-  }),
-
-  http.get('/curator/objects/:id', async ({ params }) => {
-    await delay(200)
-    const obj = mockSiteObjects.find((o) => o.id === params.id)
-    if (!obj) return HttpResponse.json({ detail: 'Object not found' }, { status: 404 })
-    return HttpResponse.json(obj)
-  }),
-
-  http.post('/curator/objects', async ({ request }) => {
-    await delay(400)
-    const body = await request.json() as { name: string; address?: string; coordinator_id?: string }
-    const coordinator = body.coordinator_id
-      ? allUsers.find((u) => u.id === body.coordinator_id)
-      : null
-    const newObj = {
-      id: `site-obj-${crypto.randomUUID().slice(0, 8)}`,
-      name: body.name,
-      address: body.address || null,
-      status: 'active',
-      coordinator_id: body.coordinator_id || null,
-      coordinator_name: coordinator ? `${coordinator.first_name} ${coordinator.last_name}` : null,
-      measurements: {},
-      comments: null,
-      active_shifts_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    return HttpResponse.json({ success: true, object: newObj })
-  }),
-
-  http.patch('/curator/objects/:id', async ({ params, request }) => {
-    await delay(300)
-    const obj = mockSiteObjects.find((o) => o.id === params.id)
-    if (!obj) return HttpResponse.json({ detail: 'Object not found' }, { status: 404 })
-    await request.json()
-    return HttpResponse.json({ success: true })
-  }),
-
-  http.post('/curator/objects/:id/assign-coordinator', async ({ params, request }) => {
-    await delay(300)
-    const obj = mockSiteObjects.find((o) => o.id === params.id)
-    if (!obj) return HttpResponse.json({ detail: 'Object not found' }, { status: 404 })
-    await request.json()
-    return HttpResponse.json({ success: true })
-  }),
-
-  http.get('/curator/objects/:id/activity', async ({ params, request }) => {
-    await delay(200)
-    const urlParams = sp(request)
-    const limit = Number(urlParams.get('limit')) || 20
-    const activities = mockSiteActivities
-      .filter((a) => a.site_object_id === params.id)
-      .slice(0, limit)
-    return HttpResponse.json({ activities })
-  }),
 ]
