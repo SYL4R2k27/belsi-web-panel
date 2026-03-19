@@ -25,3 +25,11 @@ npm-debug.log*
 
 # Claude Code internal
 .claude/
+
+# Env files (all)
+.env
+.env.production
+.env.development
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
