@@ -148,65 +148,65 @@ export const mockAccounts: MockAccount[] = [
   // Куратор
   {
     login: 'curator@belsi.work',
-    password: 'demo123',
+    password: 'mock-pass',
     user: curatorUser,
   },
   {
     login: curatorUser.phone,
-    password: 'demo123',
+    password: 'mock-pass',
     user: curatorUser,
   },
   {
     login: 'curator',
-    password: 'demo123',
+    password: 'mock-pass',
     user: curatorUser,
   },
   // Координатор
   {
     login: 'coordinator@belsi.work',
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockCoordinators[0],
   },
   {
     login: mockCoordinators[0].phone,
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockCoordinators[0],
   },
   {
     login: 'coordinator',
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockCoordinators[0],
   },
   // Бригадир
   {
     login: 'foreman@belsi.work',
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockForemen[0],
   },
   {
     login: mockForemen[0].phone,
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockForemen[0],
   },
   {
     login: 'foreman',
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockForemen[0],
   },
   // Монтажник
   {
     login: 'installer@belsi.work',
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockInstallers[0],
   },
   {
     login: mockInstallers[0].phone,
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockInstallers[0],
   },
   {
     login: 'installer',
-    password: 'demo123',
+    password: 'mock-pass',
     user: mockInstallers[0],
   },
 ]
@@ -532,7 +532,7 @@ export const mockAuditLogs: AuditLogEntry[] = Array.from({ length: 60 }, (_, i) 
   entity_id: uuid(),
   old_data: i % 3 === 0 ? { status: 'pending' } : null,
   new_data: i % 3 === 0 ? { status: 'approved' } : null,
-  ip_address: '94.228.123.95',
+  ip_address: '10.0.0.1',
   created_at: randomDate(30),
 })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
