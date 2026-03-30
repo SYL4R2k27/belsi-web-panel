@@ -39,6 +39,7 @@ export default function PhotosPage() {
     queryFn: () =>
       photosApi.list({
         status: status !== 'all' ? status : undefined,
+        limit: 200,
       }).then((r) => r.data),
   })
 
