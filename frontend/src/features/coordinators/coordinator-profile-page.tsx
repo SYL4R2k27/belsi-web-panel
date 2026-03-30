@@ -68,7 +68,8 @@ export default function CoordinatorProfilePage() {
     enabled: !!id,
   })
 
-  const siteObject = (objectsData?.objects || []).find((o) => o.coordinator_id === id)
+  const objectsList = Array.isArray(objectsData) ? objectsData : []
+  const siteObject = objectsList.find((o) => o.coordinator_id === id)
 
   // Load activity for the site object
   const { data: activityData } = useQuery({
@@ -158,7 +159,7 @@ export default function CoordinatorProfilePage() {
                     <div className={`h-2 w-2 rounded-full ${profile.is_on_shift ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
                     <span className="text-muted-foreground">{profile.is_on_shift ? 'Смена идёт' : 'Смена не идёт'}</span>
                   </div>
-                  <span className="text-muted-foreground">Активных смен: {siteObject.active_shifts_count}</span>
+                  <span className="text-muted-foreground">Смен сегодня: {siteObject.shifts_today}</span>
                 </div>
               </div>
             </div>

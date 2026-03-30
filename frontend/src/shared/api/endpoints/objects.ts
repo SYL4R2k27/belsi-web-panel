@@ -6,7 +6,7 @@ import type { RealSiteObject, SiteObjectActivity } from '@/shared/types'
 export const objectsApi = {
   /** GET /curator/objects — list all site objects */
   list(params?: { status?: string }) {
-    return apiClient.get<{ objects: RealSiteObject[] }>('/curator/objects', { params })
+    return apiClient.get<RealSiteObject[]>('/curator/objects', { params })
   },
 
   /** GET /curator/objects/:id — get site object detail */

@@ -58,7 +58,7 @@ export default function ObjectsPage() {
     },
   })
 
-  const objects: RealSiteObject[] = objectsData?.objects || []
+  const objects: RealSiteObject[] = Array.isArray(objectsData) ? objectsData : []
   const allCoordinators = Array.isArray(coordinators) ? coordinators : []
 
   const filtered = objects.filter((obj) => {
@@ -209,8 +209,8 @@ export default function ObjectsPage() {
                     )}
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Активных смен</span>
-                    <span className="font-medium">{obj.active_shifts_count}</span>
+                    <span className="text-muted-foreground">Смен сегодня</span>
+                    <span className="font-medium">{obj.shifts_today}</span>
                   </div>
                 </div>
 

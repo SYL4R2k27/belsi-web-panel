@@ -370,12 +370,17 @@ export interface RealSiteObject {
   id: string
   name: string
   address: string | null
+  description: string | null
   status: string
   coordinator_id: string | null
   coordinator_name: string | null
   measurements: Record<string, unknown>
   comments: string | null
-  active_shifts_count: number
+  photo_urls: string[]
+  file_urls: string[]
+  active_workers_count: number
+  shifts_today: number
+  total_photos: number
   created_at: string | null
   updated_at: string | null
 }
@@ -592,6 +597,9 @@ export interface RealCuratorPhotoOut {
   status: string
   comment: string | null
   category: string
+  ai_comment: string | null
+  ai_score: number | null
+  ai_category: string | null
 }
 
 export interface RealShiftItem {
