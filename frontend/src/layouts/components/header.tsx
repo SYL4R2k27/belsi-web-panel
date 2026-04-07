@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LogOut, Menu, Moon, Sun, User, Paintbrush } from 'lucide-react'
+import { LogOut, Menu, Moon, Sun, User } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
 import { useTheme } from '@/app/providers/theme-provider'
 import { ROLE_LABELS } from '@/shared/lib/rbac'
@@ -32,19 +32,19 @@ export function Header({ glassmorphism = false, onMobileMenuToggle }: HeaderProp
   return (
     <header
       className={cn(
-        'flex h-14 sm:h-16 items-center justify-between border-b px-3 sm:px-6 shrink-0',
+        'flex h-14 items-center justify-between border-b px-3 sm:px-5 shrink-0 transition-colors',
         glassmorphism
-          ? 'bg-background/70 backdrop-blur-xl'
+          ? 'bg-background/80 backdrop-blur-2xl'
           : 'bg-background',
       )}
     >
-      {/* Left side: hamburger on mobile */}
+      {/* Left side */}
       <div className="flex items-center gap-2">
         {onMobileMenuToggle && (
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden h-9 w-9 rounded-xl"
             onClick={onMobileMenuToggle}
           >
             <Menu className="h-5 w-5" />
@@ -52,28 +52,31 @@ export function Header({ glassmorphism = false, onMobileMenuToggle }: HeaderProp
         )}
       </div>
 
-      {/* Right side: actions */}
-      <div className="flex items-center gap-1 sm:gap-2">
-        <Link to="/settings" className="hidden sm:block">
-          <Button variant="ghost" size="icon" title="Оформление">
-            <Paintbrush className="h-4 w-4" />
-          </Button>
-        </Link>
-
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
+      {/* Right side */}
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
+        >
           {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
         </Button>
 
         <NotificationCenter />
 
+        <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 pl-2">
-              <Avatar className="h-7 w-7">
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            <Button variant="ghost" className="gap-2.5 pl-2 pr-3 rounded-xl h-9">
+              <Avatar className="h-7 w-7 ring-2 ring-primary/20">
+                <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="hidden sm:flex flex-col items-start">
-                <span className="text-sm leading-tight">
+                <span className="text-sm font-medium leading-tight">
                   {user?.first_name} {user?.last_name}
                 </span>
                 {user?.role && (
@@ -84,21 +87,15 @@ export function Header({ glassmorphism = false, onMobileMenuToggle }: HeaderProp
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem asChild>
+          <DropdownMenuContent align="end" className="w-48 rounded-xl">
+            <DropdownMenuItem asChild className="rounded-lg">
               <Link to="/profile" className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
                 Профиль
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings" className="flex items-center">
-                <Paintbrush className="mr-2 h-4 w-4" />
-                Оформление
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout} className="text-destructive">
+            <DropdownMenuItem onClick={logout} className="text-destructive rounded-lg">
               <LogOut className="mr-2 h-4 w-4" />
               Выйти
             </DropdownMenuItem>

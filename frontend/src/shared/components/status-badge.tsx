@@ -1,34 +1,34 @@
 import { Badge } from '@/shared/ui/badge'
 import { cn } from '@/shared/lib/utils'
 
-const statusColorMap: Record<string, string> = {
+const statusConfig: Record<string, { color: string; dot: string }> = {
   // Shifts
-  active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  paused: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
-  finished: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  active: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  paused: { color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+  finished: { color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
+  cancelled: { color: 'bg-red-500/10 text-red-600 dark:text-red-400', dot: 'bg-red-500' },
   // Photos
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
-  approved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  pending: { color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+  approved: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  rejected: { color: 'bg-red-500/10 text-red-600 dark:text-red-400', dot: 'bg-red-500' },
   // Tasks
-  new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  in_progress: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
-  done: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  new: { color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
+  in_progress: { color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+  done: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
   // Tickets
-  open: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  resolved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  closed: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  open: { color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
+  resolved: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  closed: { color: 'bg-gray-500/10 text-gray-600 dark:text-gray-400', dot: 'bg-gray-400' },
   // Payments
-  paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  paid: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
   // Invites
-  accepted: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  expired: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  accepted: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  expired: { color: 'bg-gray-500/10 text-gray-600 dark:text-gray-400', dot: 'bg-gray-400' },
   // Tools
-  good: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  worn: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
-  damaged: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  lost: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  good: { color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  worn: { color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+  damaged: { color: 'bg-red-500/10 text-red-600 dark:text-red-400', dot: 'bg-red-500' },
+  lost: { color: 'bg-red-500/10 text-red-600 dark:text-red-400', dot: 'bg-red-500' },
 }
 
 const statusLabelMap: Record<string, string> = {
@@ -68,15 +68,20 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
+  const config = statusConfig[status]
+  const defaultConfig = { color: 'bg-gray-500/10 text-gray-600 dark:text-gray-400', dot: 'bg-gray-400' }
+  const { color, dot } = config || defaultConfig
+
   return (
     <Badge
       variant="secondary"
       className={cn(
-        'font-medium',
-        statusColorMap[status] || 'bg-gray-100 text-gray-800',
+        'font-medium border-0 gap-1.5',
+        color,
         className,
       )}
     >
+      <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', dot)} />
       {statusLabelMap[status] || status}
     </Badge>
   )

@@ -24,6 +24,7 @@ import {
   ZoomIn,
   User,
   MessageSquare,
+  ImageIcon,
 } from 'lucide-react'
 
 export default function PhotosPage() {
@@ -86,7 +87,7 @@ export default function PhotosPage() {
             <img
               src={row.original.photo_url}
               alt=""
-              className="h-12 w-16 rounded object-cover transition-opacity group-hover:opacity-80"
+              className="h-12 w-16 rounded-lg object-cover transition-all group-hover:opacity-80 group-hover:shadow-md"
             />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <ZoomIn className="h-4 w-4 text-white drop-shadow" />
@@ -115,7 +116,11 @@ export default function PhotosPage() {
     {
       accessorKey: 'timestamp',
       header: 'Загружено',
-      cell: ({ row }) => formatDateTime(row.original.timestamp),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-sm font-mono">
+          {formatDateTime(row.original.timestamp)}
+        </span>
+      ),
     },
     {
       accessorKey: 'comment',
@@ -145,7 +150,7 @@ export default function PhotosPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-green-600 hover:bg-green-100 hover:text-green-700"
+              className="h-8 w-8 rounded-lg text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
               onClick={() => approveMutation.mutate(row.original.id)}
             >
               <Check className="h-4 w-4" />
@@ -153,7 +158,7 @@ export default function PhotosPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-red-600 hover:bg-red-100 hover:text-red-700"
+              className="h-8 w-8 rounded-lg text-red-500 hover:bg-red-500/10 hover:text-red-600"
               onClick={() => setRejectDialog({ open: true, photoId: row.original.id })}
             >
               <X className="h-4 w-4" />
@@ -166,10 +171,10 @@ export default function PhotosPage() {
 
   const statusFilter = (
     <Select value={status} onValueChange={(v) => setStatus(v)}>
-      <SelectTrigger className="w-full sm:w-[180px]">
+      <SelectTrigger className="w-full sm:w-[180px] rounded-xl">
         <SelectValue placeholder="Статус" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="rounded-xl">
         <SelectItem value="all">Все</SelectItem>
         <SelectItem value="pending">Ожидают</SelectItem>
         <SelectItem value="approved">Одобрены</SelectItem>
@@ -178,29 +183,33 @@ export default function PhotosPage() {
     </Select>
   )
 
+  const photosCount = photos.length
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Модерация фото"
-        description="Проверка и одобрение фотоотчётов монтажников"
+        description={`Проверка и одобрение фотоотчётов монтажников${photosCount > 0 ? ` · ${photosCount} фото` : ''}`}
         actions={
-          <div className="flex items-center gap-1 rounded-lg border p-1">
-            <Button
-              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setViewMode('table')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-xl border p-1">
+              <Button
+                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-7 w-7 rounded-lg"
+                onClick={() => setViewMode('table')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-7 w-7 rounded-lg"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         }
       />
@@ -215,14 +224,28 @@ export default function PhotosPage() {
       ) : (
         <div>
           <div className="mb-4 flex items-center gap-4">{statusFilter}</div>
-          {photos.length === 0 && !isLoading && (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-              <p>Нет фотографий для отображения</p>
+
+          {isLoading && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="aspect-[4/3] rounded-xl bg-muted animate-pulse" />
+              ))}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+
+          {photos.length === 0 && !isLoading && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-lg font-medium text-foreground">Нет фотографий</p>
+              <p className="text-sm text-muted-foreground mt-1">Фотографии появятся здесь после загрузки монтажниками</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {photos.map((photo, idx) => (
-              <div key={photo.id} className="group relative overflow-hidden rounded-lg border">
+              <div key={photo.id} className="group relative overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg hover:shadow-black/5">
                 <button
                   onClick={() => openLightbox(idx)}
                   className="w-full cursor-pointer"
@@ -230,34 +253,40 @@ export default function PhotosPage() {
                   <img
                     src={photo.photo_url}
                     alt=""
-                    className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                      <ZoomIn className="h-5 w-5 text-white" />
+                    </div>
                   </div>
                 </button>
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
+
+                {/* Info overlay at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
                   <div className="flex items-center justify-between">
                     <Link
                       to={`/installers/${photo.user_id}`}
-                      className="text-xs text-white hover:underline"
+                      className="text-xs font-medium text-white hover:underline truncate max-w-[60%]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {photo.user_name || photo.user_phone}
                     </Link>
-                    <StatusBadge status={photo.status} className="text-[10px]" />
+                    <StatusBadge status={photo.status} className="text-[9px] py-0 h-5" />
                   </div>
                   {photo.comment && (
-                    <p className="text-[11px] text-white/80 mt-1 line-clamp-2 flex items-start gap-1">
+                    <p className="text-[11px] text-white/70 mt-1 line-clamp-1 flex items-start gap-1">
                       <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
                       {photo.comment}
                     </p>
                   )}
                   {photo.status === 'pending' && (
-                    <div className="mt-2 flex gap-1">
+                    <div className="mt-2 flex gap-1.5">
                       <Button
                         size="sm"
-                        className="h-6 flex-1 bg-green-600 text-xs hover:bg-green-700"
+                        className="h-7 flex-1 rounded-lg bg-emerald-600 text-xs font-medium hover:bg-emerald-500 shadow-sm"
                         onClick={(e) => { e.stopPropagation(); approveMutation.mutate(photo.id) }}
                       >
                         <Check className="mr-1 h-3 w-3" />OK
@@ -265,7 +294,7 @@ export default function PhotosPage() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        className="h-6 flex-1 text-xs"
+                        className="h-7 flex-1 rounded-lg text-xs font-medium shadow-sm"
                         onClick={(e) => { e.stopPropagation(); setRejectDialog({ open: true, photoId: photo.id }) }}
                       >
                         <X className="mr-1 h-3 w-3" />Нет
@@ -281,7 +310,7 @@ export default function PhotosPage() {
 
       {/* Lightbox Dialog */}
       <Dialog open={lightbox.open} onOpenChange={(open) => !open && setLightbox({ open: false, index: 0 })}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl border-0">
           {currentPhoto && (
             <div className="flex flex-col">
               {/* Image area */}
@@ -295,29 +324,29 @@ export default function PhotosPage() {
                 {lightbox.index > 0 && (
                   <button
                     onClick={() => navigateLightbox(-1)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 backdrop-blur-sm p-2 text-white hover:bg-black/60 transition-colors"
                   >
-                    <ChevronLeft className="h-6 w-6" />
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
                 )}
                 {lightbox.index < photos.length - 1 && (
                   <button
                     onClick={() => navigateLightbox(1)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 backdrop-blur-sm p-2 text-white hover:bg-black/60 transition-colors"
                   >
-                    <ChevronRight className="h-6 w-6" />
+                    <ChevronRight className="h-5 w-5" />
                   </button>
                 )}
                 {/* Counter */}
-                <div className="absolute top-2 right-2 rounded bg-black/60 px-2 py-1 text-xs text-white">
+                <div className="absolute top-3 right-3 rounded-full bg-black/40 backdrop-blur-sm px-3 py-1 text-xs text-white font-mono">
                   {lightbox.index + 1} / {photos.length}
                 </div>
               </div>
 
               {/* Info bar */}
-              <div className="p-4 border-t space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+              <div className="p-4 border-t space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-4 flex-wrap">
                     <Link
                       to={`/installers/${currentPhoto.user_id}`}
                       className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
@@ -330,7 +359,7 @@ export default function PhotosPage() {
                     <span className="text-sm text-muted-foreground">
                       {currentPhoto.category || '—'}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-muted-foreground font-mono">
                       {formatDateTime(currentPhoto.timestamp)}
                     </span>
                     <StatusBadge status={currentPhoto.status} />
@@ -339,7 +368,7 @@ export default function PhotosPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-emerald-600 hover:bg-emerald-500 rounded-xl"
                       onClick={() => {
                         approveMutation.mutate(currentPhoto.id)
                         if (lightbox.index < photos.length - 1) {
@@ -353,6 +382,7 @@ export default function PhotosPage() {
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="rounded-xl"
                       onClick={() => setRejectDialog({ open: true, photoId: currentPhoto.id })}
                     >
                       <X className="mr-1 h-4 w-4" />
@@ -362,7 +392,7 @@ export default function PhotosPage() {
                 )}
                 </div>
                 {currentPhoto.comment && (
-                  <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2.5">
+                  <div className="flex items-start gap-2 rounded-xl bg-muted/50 p-3">
                     <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                     <p className="text-sm">{currentPhoto.comment}</p>
                   </div>
@@ -375,7 +405,7 @@ export default function PhotosPage() {
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialog.open} onOpenChange={(open) => setRejectDialog({ open, photoId: open ? rejectDialog.photoId : null })}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>Отклонить фото</DialogTitle>
           </DialogHeader>
@@ -384,13 +414,15 @@ export default function PhotosPage() {
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
+            className="rounded-xl"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialog({ open: false, photoId: null })}>
+            <Button variant="outline" onClick={() => setRejectDialog({ open: false, photoId: null })} className="rounded-xl">
               Отмена
             </Button>
             <Button
               variant="destructive"
+              className="rounded-xl"
               disabled={!rejectReason.trim() || rejectMutation.isPending}
               onClick={() => {
                 if (rejectDialog.photoId) {

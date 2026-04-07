@@ -106,41 +106,41 @@ export default function ObjectsPage() {
       />
 
       {/* Summary */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 stagger-children">
+        <Card className="group hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8 group-hover:bg-primary/15 transition-colors">
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{objects.length}</p>
-              <p className="text-sm text-muted-foreground">Объектов всего</p>
+              <p className="text-2xl font-bold font-mono">{objects.length}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Объектов всего</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
-              <Building2 className="h-5 w-5 text-green-600" />
+        <Card className="group hover:shadow-lg hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-300">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/8 group-hover:bg-emerald-500/15 transition-colors">
+              <Building2 className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold font-mono">
                 {objects.filter((o) => o.status === 'active').length}
               </p>
-              <p className="text-sm text-muted-foreground">Активных</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Активных</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+        <Card className="group hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-0.5 transition-all duration-300">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/8 group-hover:bg-blue-500/15 transition-colors">
               <User className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold font-mono">
                 {objects.filter((o) => o.coordinator_id).length}
               </p>
-              <p className="text-sm text-muted-foreground">С координатором</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">С координатором</p>
             </div>
           </CardContent>
         </Card>
@@ -154,10 +154,10 @@ export default function ObjectsPage() {
             placeholder="Поиск по объектам..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 rounded-xl"
           />
         </div>
-        <Button onClick={() => setShowCreate(true)}>
+        <Button onClick={() => setShowCreate(true)} className="rounded-xl">
           <Plus className="mr-2 h-4 w-4" />
           Новый объект
         </Button>
@@ -177,7 +177,7 @@ export default function ObjectsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((obj) => (
-            <Card key={obj.id} className="hover:border-primary/50 transition-colors">
+            <Card key={obj.id} className="hover:border-primary/30 hover:shadow-lg hover:shadow-black/5 transition-all duration-300 rounded-xl overflow-hidden">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div className="min-w-0 flex-1">

@@ -113,7 +113,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-3">
       {toolbar}
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-xl border overflow-x-auto bg-card">
         <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -161,6 +161,7 @@ export function DataTable<TData, TValue>({
           <Button
             variant="outline"
             size="sm"
+            className="rounded-lg"
             onClick={() => {
               if (isServerPaginated) {
                 onPageChange?.(page - 1)
@@ -172,13 +173,14 @@ export function DataTable<TData, TValue>({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm text-muted-foreground">
-            Стр. {isServerPaginated ? page : table.getState().pagination.pageIndex + 1}
-            {pageCount ? ` из ${pageCount}` : ''}
+          <span className="text-sm text-muted-foreground font-mono">
+            {isServerPaginated ? page : table.getState().pagination.pageIndex + 1}
+            {pageCount ? ` / ${pageCount}` : ''}
           </span>
           <Button
             variant="outline"
             size="sm"
+            className="rounded-lg"
             onClick={() => {
               if (isServerPaginated) {
                 onPageChange?.(page + 1)

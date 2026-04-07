@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Sidebar } from './components/sidebar'
+import { Sidebar, MobileBottomNav } from './components/sidebar'
 import { TopNav } from './components/top-nav'
 import { Header } from './components/header'
 import { dashboardApi } from '@/shared/api/endpoints/dashboard'
@@ -48,7 +48,6 @@ export function DashboardLayout() {
       return
     }
 
-    // Detect new pending photos
     if (stats.pending_photos > prev.pending_photos) {
       const diff = stats.pending_photos - prev.pending_photos
       addNotification({
@@ -60,7 +59,6 @@ export function DashboardLayout() {
       toast.info(`${diff} новых фото на модерацию`)
     }
 
-    // Detect new support tickets
     if (stats.open_support_tickets > prev.open_support_tickets) {
       const diff = stats.open_support_tickets - prev.open_support_tickets
       addNotification({
@@ -150,14 +148,22 @@ export function DashboardLayout() {
           />
           <main
             className={cn(
-              'flex-1 overflow-auto p-3 sm:p-4 md:p-6',
+              'flex-1 overflow-auto p-3 sm:p-4 md:p-6 pb-20 md:pb-6',
               hasWallpaper && 'bg-background/80 backdrop-blur-xl',
             )}
           >
-            <Outlet />
+            <div className="page-enter">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>
+
+      {/* Mobile bottom nav */}
+      <MobileBottomNav
+        pendingPhotos={stats?.pending_photos}
+        unreadMessages={unreadMessages > 0 ? unreadMessages : undefined}
+      />
     </div>
   )
 }

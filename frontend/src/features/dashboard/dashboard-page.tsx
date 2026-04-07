@@ -14,6 +14,8 @@ import {
   Eye,
   EyeOff,
   RotateCcw,
+  TrendingUp,
+  Activity,
 } from 'lucide-react'
 import { dashboardApi } from '@/shared/api/endpoints/dashboard'
 import { PageHeader } from '@/shared/components/page-header'
@@ -111,7 +113,7 @@ export default function DashboardPage() {
     switch (widget.id) {
       case 'installers':
         return (
-          <Link to="/installers" key={widget.id}>
+          <Link to="/installers" key={widget.id} className="block">
             <StatCard
               label="Монтажники"
               value={`${overview.active_installers_today} / ${overview.total_installers}`}
@@ -121,7 +123,7 @@ export default function DashboardPage() {
         )
       case 'foremen':
         return (
-          <Link to="/foremen" key={widget.id}>
+          <Link to="/foremen" key={widget.id} className="block">
             <StatCard
               label="Бригадиры"
               value={`${overview.active_foremen_today} / ${overview.total_foremen}`}
@@ -131,7 +133,7 @@ export default function DashboardPage() {
         )
       case 'coordinators':
         return (
-          <Link to="/coordinators" key={widget.id}>
+          <Link to="/coordinators" key={widget.id} className="block">
             <StatCard
               label="Координаторы"
               value={`${overview.active_coordinators_today ?? 0} / ${overview.total_coordinators ?? 0}`}
@@ -141,19 +143,19 @@ export default function DashboardPage() {
         )
       case 'shifts':
         return (
-          <Link to="/shifts" key={widget.id}>
+          <Link to="/shifts" key={widget.id} className="block">
             <StatCard label="Смены сегодня" value={overview.total_shifts_today} icon={Clock} />
           </Link>
         )
       case 'photos':
         return (
-          <Link to="/photos" key={widget.id}>
+          <Link to="/photos" key={widget.id} className="block">
             <StatCard label="Фото на модерации" value={overview.pending_photos} icon={Camera} />
           </Link>
         )
       case 'tools':
         return (
-          <Link to="/tools" key={widget.id}>
+          <Link to="/tools" key={widget.id} className="block">
             <StatCard
               label="Инструменты"
               value={`${overview.tools_issued} / ${overview.total_tools}`}
@@ -163,27 +165,34 @@ export default function DashboardPage() {
         )
       case 'tickets':
         return (
-          <Link to="/support" key={widget.id}>
+          <Link to="/support" key={widget.id} className="block">
             <StatCard label="Тикеты поддержки" value={overview.open_support_tickets} icon={MessageSquare} />
           </Link>
         )
       case 'completion':
         return (
-          <Card key={widget.id} className="col-span-full">
-            <CardHeader>
-              <CardTitle className="text-base">Средний процент выполнения</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${Math.min(overview.average_completion_percentage, 100)}%` }}
-                  />
+          <Card key={widget.id} className="col-span-full group overflow-hidden relative">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8">
+                    <Activity className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Выполнение</p>
+                  </div>
                 </div>
-                <span className="text-sm font-medium tabular-nums">
-                  {overview.average_completion_percentage}%
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold tracking-tight font-mono">
+                    {overview.average_completion_percentage}%
+                  </span>
+                </div>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700 ease-out"
+                  style={{ width: `${Math.min(overview.average_completion_percentage, 100)}%` }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -199,7 +208,7 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Обзор операционной деятельности"
         actions={
-          <Button variant="outline" size="sm" onClick={openEdit}>
+          <Button variant="outline" size="sm" onClick={openEdit} className="rounded-xl">
             <Settings2 className="mr-2 h-4 w-4" />
             Настроить
           </Button>
@@ -209,29 +218,29 @@ export default function DashboardPage() {
       {overviewLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-[120px]" />
+            <Skeleton key={i} className="h-[110px] rounded-xl" />
           ))}
         </div>
       ) : overview ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
           {visibleWidgets.map((w) => renderWidget(w))}
         </div>
       ) : null}
 
       {/* Edit widgets dialog */}
       <Dialog open={editMode} onOpenChange={setEditMode}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Настройка дашборда</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             Перетаскивайте элементы для изменения порядка. Нажмите на иконку глаза, чтобы скрыть/показать виджет.
           </p>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+          <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
             {editWidgets.map((widget, idx) => (
               <div
                 key={widget.id}
-                className="flex items-center gap-3 rounded-lg border p-3 bg-background"
+                className="flex items-center gap-3 rounded-xl border p-3 bg-background transition-colors hover:bg-muted/50"
                 draggable
                 onDragStart={() => setDragIdx(idx)}
                 onDragOver={(e) => e.preventDefault()}
@@ -244,16 +253,16 @@ export default function DashboardPage() {
               >
                 <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
                 <div className="flex-1">
-                  <Label className="cursor-pointer">{widget.label}</Label>
+                  <Label className="cursor-pointer text-sm">{widget.label}</Label>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 rounded-lg"
                   onClick={() => toggleWidget(widget.id)}
                 >
                   {widget.visible ? (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-primary" />
                   ) : (
                     <EyeOff className="h-4 w-4 text-muted-foreground" />
                   )}
@@ -262,12 +271,12 @@ export default function DashboardPage() {
             ))}
           </div>
           <DialogFooter>
-            <Button variant="ghost" size="sm" onClick={resetToDefaults} className="mr-auto">
+            <Button variant="ghost" size="sm" onClick={resetToDefaults} className="mr-auto rounded-xl">
               <RotateCcw className="mr-1 h-4 w-4" />
               Сбросить
             </Button>
-            <Button variant="outline" onClick={() => setEditMode(false)}>Отмена</Button>
-            <Button onClick={saveEdit}>Сохранить</Button>
+            <Button variant="outline" onClick={() => setEditMode(false)} className="rounded-xl">Отмена</Button>
+            <Button onClick={saveEdit} className="rounded-xl">Сохранить</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
