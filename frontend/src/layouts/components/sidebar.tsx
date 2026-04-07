@@ -117,13 +117,11 @@ export function Sidebar({
         'flex h-16 items-center border-b shrink-0',
         collapsed ? 'justify-center px-2' : 'gap-3 px-5',
       )}>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-sm font-bold shadow-sm">
-          B
-        </div>
+        <img src={`${import.meta.env.BASE_URL}logo-60.png`} alt="BELSI" className="h-9 w-9 shrink-0 rounded-xl shadow-sm" />
         {!collapsed && (
           <div className="flex flex-col min-w-0">
             <span className="text-base font-bold text-sidebar-foreground tracking-tight whitespace-nowrap leading-tight">
-              BELSI<span className="text-primary">.Work</span>
+              BELSI<span className="text-primary">.Монтаж</span>
             </span>
             <span className="text-[10px] font-medium text-sidebar-foreground/40 leading-tight truncate uppercase tracking-wider">
               {roleLabel}

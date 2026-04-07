@@ -56,11 +56,9 @@ export function LoginPage() {
       <div className="w-full max-w-[400px] relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xl font-bold shadow-lg shadow-primary/20 mb-4">
-            B
-          </div>
+          <img src={`${import.meta.env.BASE_URL}logo-512.png`} alt="BELSI" className="h-16 w-16 rounded-2xl shadow-lg shadow-primary/20 mb-4 mx-auto" />
           <h1 className="text-2xl font-bold tracking-tight">
-            BELSI<span className="text-primary">.Work</span>
+            BELSI<span className="text-primary">.Монтаж</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Панель управления монтажом</p>
         </div>
@@ -124,7 +122,7 @@ export function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          BELSI.Work v1.0 — Система управления монтажом
+          BELSI.Монтаж — Система управления
         </p>
       </div>
     </div>
